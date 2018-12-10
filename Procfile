@@ -1,1 +1,1 @@
-web: gunicorn app:typeform --log-file=-
+web: gunicorn app:app --log-file=-
