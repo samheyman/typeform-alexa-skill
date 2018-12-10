@@ -1,73 +1,53 @@
-import time
-import json
-from urllib import request, parse
-from collections import namedtuple
+import logging
+import os
+from flask import Flask
+from flask_ask import Ask, request, session, question, statement
 
-# k2bo1N
-# tqOCMu
-url = 'https://api.typeform.com/forms/tqOCMu'
 
-def api_call(url):
-    header = {
-		'Authorization': 'Bearer ' + 'xgHiVsz2fK4p4Tgg947WEcJBhvt76yfsachrz1qMxZf'
-	}
-    req = request.Request(url, headers=header)
+app = Flask(__name__)
+ask = Ask(app, "/")
+logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
-    print("API call to: {}".format(url))
 
-    try:
-        response = request.urlopen(req)
-        return json.load(response)
-    except:
-        return None
+@ask.launch
+def launch():
+    speech_text = 'Welcome to the Alexa Skills Kit, you can say hello'
+    return question(speech_text).reprompt(speech_text).simple_card('HelloWorld', speech_text)
 
-def get_questions():
-    questions = []
-    response = api_call(url)
-    for item in response['fields']:
-        question = {}
-        question['id'] = item['id']
-        question['text'] = item['title']
-        question['type'] = item['type']
-        questions.append(question)
-    return questions
-
-def get_responses():
-    responses = []
-    response = api_call(url + '/responses')
-    for item in response['items']:
-        if 'answers' in item:
-            for answer in item['answers']:
-                entry = {}
-                entry['id'] = answer['field']['id']
-                entry['type'] = answer['field']['type']
-                entry['value'] = answer['number'] if answer['field']['type'] == 'rating' else answer['boolean']
-                responses.append(entry)
-    return responses
-
-def get_average_rating(responses, question_id):
-    sum_ratings = sum(item['value'] for item in responses if item['id'] == question_id)
-    number_ratings = sum(1 for item in responses if item['id'] == question_id)
-    average_rating = sum_ratings / number_ratings
-    return average_rating
-
-def count_true_false(responses, question_id):
-    true_false_count = namedtuple('NumberTrue', 'NumberFalse')
-    number_true = sum(1 for item in responses if item['id'] == question_id and item['value'])
-    number_false = sum(1 for item in responses if item['id'] == question_id and not item['value'])
-    total = sum(1 for item in responses if item['id'] == question_id)
-    true_false_count = (number_true, number_false)
-    # print("True: {}, False {}, Total {}".format(number_true, number_false, total))
-    return true_false_count
-
-if __name__ == "__main__":
-    questions = get_questions()
-    responses = get_responses()
+@ask.intent('Questions')
+def return_questions():
+    questions = ['How would you rate your stay?', 'Would you come again?', 'Would you recommend us?']
+    speech_text = 'The questions you asked are'
     for question in questions:
-        print("Question: {}".format(question['text']))
-        if question['type'] == 'rating':
-            average_rating = get_average_rating(responses, question['id'])
-            print("Average rating: {}".format(average_rating))
-        else:
-            count = count_true_false(responses, question['id'])
-            print("{} out of {} said yes.".format(count[0], count[0] + count[1]))
+        speech_text = speech_text + question
+    return statement(speech_text).simple_card('Questions', speech_text)
+
+@ask.intent('CustomerFeedback')
+def return_feedback():
+    questions = [" How would you rate your stay? ", ". Would you come again? ", " Would you recommend us? "]
+    responses = []
+    i = 1
+    responses.append(". 5 ")
+    responses.append(" Your average rating is 3 point 5. ")
+    responses.append(" 2 out of 5 said yes. ")
+    responses.append(" 3 out of 5 said yes. ")
+    speech_text = "You have had {} responses in total. Here are the answers: ".format(responses[0])
+    for question in questions:
+        speech_text = " " + speech_text + " " + question + " " + responses[i] + " " 
+        i+=1
+    return statement(speech_text).simple_card('Responses', speech_text)
+
+
+@ask.intent('AMAZON.HelpIntent')
+def help():
+    speech_text = 'You can say hello to me!'
+    return question(speech_text).reprompt(speech_text).simple_card('HelloWorld', speech_text)
+
+
+@ask.session_ended
+def session_ended():
+    return "{}", 200
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
