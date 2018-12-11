@@ -3,27 +3,24 @@ import json
 from urllib import request, parse
 from collections import namedtuple
 import os
-# k2bo1N
-# tqOCMu
-url = 'https://api.typeform.com/forms/tqOCMu'
+
+base_url = 'https://api.typeform.com/forms/'
 
 def api_call(url):
     header = {
 		'Authorization': 'Bearer ' + os.environ['TYPEFORM_TOKEN']
 	}
     req = request.Request(url, headers=header)
-
-    print("API call to: {}".format(url))
-
     try:
         response = request.urlopen(req)
         return json.load(response)
     except:
+        print("Error with API call")
         return None
 
 def get_questions():
     questions = []
-    response = api_call(url)
+    response = api_call(base_url + os.environ['FORM_ID'])
     for item in response['fields']:
         question = {}
         question['id'] = item['id']
@@ -34,7 +31,7 @@ def get_questions():
 
 def get_responses():
     responses = []
-    response = api_call(url + '/responses')
+    response = api_call(base_url + os.environ['FORM_ID'] + '/responses')
     for item in response['items']:
         if 'answers' in item:
             for answer in item['answers']:
