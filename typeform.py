@@ -30,16 +30,22 @@ def get_questions():
     return questions
 
 def get_responses():
-    responses = []
+    responses = {}
+    responses['number_responses'] = 0
+    responses['results'] = []
     response = api_call(base_url + os.environ['FORM_ID'] + '/responses')
     for item in response['items']:
         if 'answers' in item:
+            responses['number_responses'] += 1
             for answer in item['answers']:
                 entry = {}
                 entry['id'] = answer['field']['id']
                 entry['type'] = answer['field']['type']
-                entry['value'] = answer['number'] if answer['field']['type'] == ('rating' or 'opinion_scale') else answer['boolean']
-                responses.append(entry)
+                if answer['field']['type'] == 'rating' or answer['field']['type'] == 'opinion_scale':
+                    entry['value'] = answer['number']
+                else:
+                    entry['value'] = answer['boolean']
+                responses['results'].append(entry)
     return responses
 
 def get_average_rating(responses, question_id):

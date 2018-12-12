@@ -28,14 +28,14 @@ def return_feedback():
     questions = get_questions()
     responses = get_responses()
     i=0
-    speech_text = "You have had {} responses in total. Here are the answers: ".format(len(responses))
+    speech_text = "You have had {} responses in total. Here are the answers: ".format(responses['number_responses'])
     for question in questions:
         print("Question: {}".format(question['text']))
         if question['type'] == 'rating':
-            average_rating = get_average_rating(responses, question['id'])
+            average_rating = get_average_rating(responses['results'], question['id'])
             answer = "Your average rating is {} .".format(average_rating)
         else:
-            count = count_true_false(responses, question['id'])
+            count = count_true_false(responses['results'], question['id'])
             answer = "{} out of {} said yes.".format(count[0], count[0] + count[1])
         print("The answer is: {} (type: {})".format(answer, type(answer)))
         speech_text = speech_text + " " + question['text'] + " " + answer + " " 
