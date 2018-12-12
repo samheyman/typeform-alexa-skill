@@ -38,7 +38,7 @@ def get_responses():
                 entry = {}
                 entry['id'] = answer['field']['id']
                 entry['type'] = answer['field']['type']
-                entry['value'] = answer['number'] if answer['field']['type'] == 'rating' else answer['boolean']
+                entry['value'] = answer['number'] if answer['field']['type'] == 'rating' or 'opinion_scale' else answer['boolean']
                 responses.append(entry)
     return responses
 
