@@ -45,7 +45,7 @@ def get_responses():
 def get_average_rating(responses, question_id):
     sum_ratings = sum(item['value'] for item in responses if item['id'] == question_id)
     number_ratings = sum(1 for item in responses if item['id'] == question_id)
-    average_rating = sum_ratings / number_ratings
+    average_rating = round(sum_ratings / number_ratings, 1)
     return average_rating
 
 def count_true_false(responses, question_id):
